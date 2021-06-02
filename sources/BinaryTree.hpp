@@ -23,7 +23,6 @@ namespace ariel
 
     private:
         Node* root;
-
         /* help method for: add_left, add_right */
         Node& find_node(T d){
             queue<Node*> q;
@@ -44,22 +43,68 @@ namespace ariel
 
     public:
         BinaryTree():root(nullptr){}
-        // ~BinaryTree(){delete_tree(root);}
-        // void delete_tree(Node* n){
-        //     if (n->left != nullptr){delete_tree(n->left);}
-        //     if (n->right != nullptr){delete_tree(n->right);}
-        //     delete[] n;
-        // }
+        BinaryTree(const BinaryTree &tree) {
+            root = new Node{tree.root->data};
+            set_tree(root, tree.root);
+        }
+
+        BinaryTree(BinaryTree &&tree) noexcept{
+            root = tree.root;
+            tree.root = nullptr;
+        }
+
+        ~BinaryTree(){
+            for (auto it=(*this).begin_preorder(); it!=(*this).end_preorder(); ++it) {
+                delete it.get_node();
+            }
+        }
 
         /* add root for the tree */
-        BinaryTree<T> add_root(T r){
+        BinaryTree& add_root(T r){
             if (root == nullptr){root = new Node(r);}
             else{root->data = r;}
             return *this;
         }
 
+        BinaryTree& operator=( BinaryTree tree){
+            if(this == &tree){return *this;}
+            if(root != nullptr){
+                for (auto it=(*this).begin_preorder(); it!=(*this).end_preorder(); ++it) {
+                    delete it.get_node();
+                }
+            }
+            root = nullptr;
+            if (tree.root != nullptr){
+                root = new Node(tree.root->data);
+                set_tree(root, tree.root);
+            }
+            return *this;
+        }
+
+        BinaryTree& operator=(BinaryTree&& tree) noexcept{
+            for (auto it=(*this).begin_preorder(); it!=(*this).end_preorder(); ++it) {
+                delete it.get_node();
+            }
+
+            root = tree.root;
+            tree.root = nullptr;
+            return *this;
+        }
+
+        void set_tree(Node* n1, Node* n2){
+            if (n2->left != nullptr){
+                n1->left = new Node(n2->left->data);
+                set_tree(n1->left, n2->left);
+            }
+            if (n2->right != nullptr){
+                n1->right = new Node(n2->right->data);
+                set_tree(n1->right, n2->right);
+            }
+        }
+
+
         /* add left child for the patent */
-        BinaryTree<T> add_left(T parent, T child){
+        BinaryTree& add_left(T parent, T child){
             if (root == nullptr){throw invalid_argument("there is no root");}
 
             Node* n = &find_node(parent);
@@ -72,7 +117,7 @@ namespace ariel
         }
 
         /* add right child for the patent */
-        BinaryTree<T> add_right(T parent, T child){
+        BinaryTree& add_right(T parent, T child){
             if (root == nullptr){throw invalid_argument("there is no root");}
 
             Node* n = &find_node(parent);
@@ -90,14 +135,16 @@ namespace ariel
         class iterator_preorder
         {
         private:
-            Node* node;
             vector<Node*> vec;
             size_t count = 0;
+            Node* node;
 
         public:
+
             iterator_preorder(Node* n){
                 set_vec(n);
                 vec.push_back(nullptr);
+                node = vec.at(count);
             }
 
             void set_vec(Node* n){
@@ -110,29 +157,36 @@ namespace ariel
             }
 
             T &operator*() const {
-                return vec.at(count)->data;
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
+                return node->data;
             }
             T *operator->() const {
-                return vec.at(count).data;
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
+                return &(node->data);
             }
 
             // ++i;
             iterator_preorder &operator++(){
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
                 ++count;
+                node = vec.at(count);
                 return *this;
             }
             // i++;
-            const iterator_preorder operator++(int){
+            iterator_preorder operator++(int){
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
                 iterator_preorder it = *this;
                 count++;
+                node = vec.at(count);
                 return it;
             }
             bool operator==(const iterator_preorder &rhs) const {
-                return vec.at(count) == rhs.vec.at(rhs.count);
+                return node == rhs.node;
             }
             bool operator!=(const iterator_preorder &rhs) const {
-                return vec.at(count) != rhs.vec.at(rhs.count);
+                return node != rhs.node;
             }
+            Node* get_node(){return node;}
 
         };
 
@@ -144,14 +198,16 @@ namespace ariel
         {
 
         private:
-            Node* node;
             vector<Node*> vec;
             size_t count = 0;
+            Node* node;
 
         public:
+
             iterator_inorder(Node* n){
                 set_vec(n);
                 vec.push_back(nullptr);
+                node = vec.at(count);
             }
 
             void set_vec(Node* n){
@@ -164,29 +220,36 @@ namespace ariel
             }
 
             T &operator*() const {
-                return vec.at(count)->data;
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
+                return node->data;
             }
             T *operator->() const {
-                return vec.at(count)->data;
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
+                return &(node->data);
             }
 
             // ++i;
             iterator_inorder &operator++(){
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
                 ++count;
+                node = vec.at(count);
                 return *this;
             }
             // i++;
-            const iterator_inorder operator++(int){
+            iterator_inorder operator++(int){
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
                 iterator_inorder it = *this;
                 count++;
+                node = vec.at(count);
                 return it;
             }
             bool operator==(const iterator_inorder &rhs) const {
-                return vec.at(count) == rhs.vec.at(rhs.count);
+                return node == rhs.node;
             }
             bool operator!=(const iterator_inorder &rhs) const {
-                return vec.at(count) != rhs.vec.at(rhs.count);
+                return node != rhs.node;
             }
+            Node* get_node(){return node;}
 
         };
 
@@ -197,16 +260,17 @@ namespace ariel
         class iterator_postorder
         {
         private:
-            Node* node;
             vector<Node*> vec;
             size_t count = 0;
+            Node* node;
 
         public:
+
             iterator_postorder(Node* n){
                 set_vec(n);
                 vec.push_back(nullptr);
+                node = vec.at(count);
             }
-            // ~iterator_postorder(){delete[] vec;}
 
             void set_vec(Node* n){
                 if (n != nullptr)
@@ -217,29 +281,37 @@ namespace ariel
                 }
             }
 
+            Node* get_node(){return node;}
+
             T &operator*() const {
-                return vec.at(count)->data;
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
+                return node->data;
             }
             T *operator->() const {
-                return &vec.at(count)->data;
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
+                return &(node->data);
             }
 
             // ++i;
             iterator_postorder &operator++(){
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
                 ++count;
+                node = vec.at(count);
                 return *this;
             }
             // i++;
-            const iterator_postorder operator++(int){
+            iterator_postorder operator++(int){
+                if (node == nullptr){throw invalid_argument("unit not exeist");}
                 iterator_postorder it = *this;
                 count++;
+                node = vec.at(count);
                 return it;
             }
             bool operator==(const iterator_postorder &rhs) const {
-                return vec.at(count) == rhs.vec.at(rhs.count);
+                return node == rhs.node;
             }
             bool operator!=(const iterator_postorder &rhs) const {
-                return vec.at(count) == rhs.vec.at(rhs.count);
+                return node != rhs.node;
             }
         };
 
@@ -254,12 +326,7 @@ namespace ariel
 
         /* begin & end inorder */
         iterator_inorder begin_inorder(){
-            Node* n  = root;
-            while (n->left != nullptr)
-            {
-                n = n->left;
-            }
-            return iterator_inorder{n};
+            return iterator_inorder{root};
         }
         iterator_inorder end_inorder(){
             return iterator_inorder{nullptr};
@@ -267,12 +334,7 @@ namespace ariel
 
         /* begin & end postorder */
         iterator_postorder begin_postorder(){
-            Node* n  = root;
-            while (n->left != nullptr)
-            {
-                n = n->left;
-            }
-            return iterator_postorder{n};
+            return iterator_postorder{root};
         }
         iterator_postorder end_postorder(){
             return iterator_postorder{nullptr};
